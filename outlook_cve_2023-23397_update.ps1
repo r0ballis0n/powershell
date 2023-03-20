@@ -4,7 +4,7 @@
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process -Force
 
 # Log Location Variable
-$logFile = "C:\tmp\outlook_cve202323397_script.log"
+$logFile = "C:\itvoice\outlook_cve202323397_script.log"
 
 # Function to write logs to a log file
 function Write-Log($message) {
@@ -27,21 +27,17 @@ try {
 }
 
 # Check for Office Click-To-Run Products
+$updateCommand = "C:\Program Files\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe"
+$updateArguments = "/update user displaylevel=false forceappshutdown=true"
+
 try {
-    $officeC2R = Get-ItemProperty HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*,HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.DisplayName -like "*Microsoft Office Professional Plus 2019*" -or $_.DisplayName -like "*Microsoft Office Professional Plus 2021*" -or $_.DisplayName -like "*Microsoft Office 365*" -or $_.DisplayName -like "*Microsoft 365*"}
-    if ($null -ne $officeC2R) {
-        if (Test-Path "C:\Program Files\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe") {
-            Write-Log "Click-To-Run Office detected. Initiating update."
-            & "C:\Program Files\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe" /update user displaylevel=false forceappshutdown=true
-            Write-Log "Click-To-Run Office update complete."
-        }
-        else {
-            Write-Log "No Click-To-Run Office detected."
-        }
-    }
+    Write-Host "Starting Office update process..."
+    Start-Process -FilePath $updateCommand -ArgumentList $updateArguments -Wait -NoNewWindow -ErrorAction Stop
+    Write-Host "Office update process completed."
 } catch {
-    Write-Log "Error updating Click-To-Run Office: $_"
+    Write-Host "Error while updating Office: $_"
 }
+
 
  # Temporarily disable WSUS
  try {
@@ -136,9 +132,9 @@ Write-Log "Error enabling Windows Update for Business deferral period: $_"
 
 Write-Log "Update complete if reboot is needed system will do it now."
 
-# Reboot if any pending updates
+# Reboot System
 try {
-Get-WURebootStatus -AutoReboot
+Restart-Computer -Force
 } catch {
 Write-Log "Error checking for pending updates and reboot: $_"
 }
