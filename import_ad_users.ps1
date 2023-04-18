@@ -2,6 +2,9 @@ Import-Module ActiveDirectory
 
 $NewDomain = "NEW_DOMAIN"
 $ImportFile = "ADUsersExport.csv"
+$DefaultPassword = "TempPassword123!" # Set a default temporary password here
+
+$securePassword = ConvertTo-SecureString $DefaultPassword -AsPlainText -Force
 
 $users = Import-Csv -Path $ImportFile
 
@@ -23,6 +26,7 @@ ForEach ($user in $users) {
         'MobilePhone' = $user.MobilePhone
         'Fax' = $user.Fax
         'UserPrincipalName' = $user.UserPrincipalName
+        'AccountPassword' = $securePassword
     }
     New-ADUser @UserProperties -Server $NewDomain
 }
